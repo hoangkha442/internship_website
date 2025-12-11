@@ -9,6 +9,7 @@ import ProtectedRoute from './ProtectedRoute'
 import AdminStudentsPage from '../modules/admin/pages/AdminStudentsPage'
 import AdminLecturerPage from '../modules/admin/pages/AdminLecturerPage'
 import AdminTermsPage from '../modules/admin/pages/AdminTermsPage/AdminTermsPage'
+import NotFoundPage from '../modules/shared/components/NotFoundPage'
 
 const AppRouter = () => {
   const element = useRoutes([
@@ -52,7 +53,7 @@ const AppRouter = () => {
         },
       ],
     },
-    { path: '*', element: <Navigate to="/auth/login" /> },
+    { path: '*', element: <NotFoundPage /> },
   ])
 
   return element
