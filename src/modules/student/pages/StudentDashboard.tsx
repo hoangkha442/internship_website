@@ -6,7 +6,7 @@ const { Title, Paragraph } = Typography
 
 const StudentDashboard = () => {
   return (
-    <div className="space-y-4">
+    <div className="p-6 space-y-4">
       <PageHeader
         title="Bảng điều khiển sinh viên"
         subtitle="Theo dõi nhanh trạng thái điểm danh, báo cáo và tiến độ thực tập"
