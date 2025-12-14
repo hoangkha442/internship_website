@@ -1,4 +1,6 @@
+import type { RegisterInternshipPayload, RegisterInternshipResponse } from "../modules/shared/types/internship"
 import type { CreateStudentPayload, GetStudentParams, PaginationMeta, Student, StudentListResponse, UpdateStudentPayload } from "../modules/shared/types/student"
+import type { MyInternshipResponse, MyTopicRegistrationResponse } from "../modules/shared/types/studentInternship"
 import { api } from "./config"
 
 // ADMIN CONTROL
@@ -84,3 +86,40 @@ export const getInternship_topics = async(
   }
   return { items, meta }
 }
+
+
+export const registerTopic = async (payload: {
+  topic_id: string;
+}) => {
+  const res = await api.post("internships/topic-registrations", payload);
+  return res.data;
+};
+
+export const registerInternship = async (
+  payload: RegisterInternshipPayload
+) => {
+  const res = await api.post<RegisterInternshipResponse>(
+    '/internships/register',
+    payload
+  )
+
+  return res.data
+}
+
+export const getInternshipTopics = (params: { page?: number; limit?: number }) =>
+  api
+    .get('/internships/student/internship-topics', { params })
+    .then((res) => res.data)
+
+export const createTopicRegistration = (payload: { topic_id: string }) =>
+  api
+    .post('/internships/topic-registrations', payload)
+    .then((res) => res.data)
+
+export const getMyInternship = () =>
+  api.get<MyInternshipResponse | null>('/internships/my').then((res) => res.data)
+
+export const getMyTopicRegistration = () =>
+  api
+    .get<MyTopicRegistrationResponse>('/internships/student/my-topic-registration')
+    .then((res) => res.data)

@@ -10,6 +10,8 @@ import AdminStudentsPage from '../modules/admin/pages/AdminStudentsPage'
 import AdminLecturerPage from '../modules/admin/pages/AdminLecturerPage'
 import AdminTermsPage from '../modules/admin/pages/AdminTermsPage/AdminTermsPage'
 import NotFoundPage from '../modules/shared/components/NotFoundPage'
+import StudentInternshipTopics from '../modules/student/pages/StudentInternshipTopics'
+import StudentInternshipProfilePage from '../modules/student/pages/StudentInternshipProfilePage'
 
 const AppRouter = () => {
   const element = useRoutes([
@@ -29,11 +31,12 @@ const AppRouter = () => {
         </ProtectedRoute>
       ),
       children: [
-        // Student
         {
           path: 'student',
           children: [
             { index: true, element: <StudentDashboard /> },
+            { path: '/student/profile', element: <StudentInternshipProfilePage />},
+            { path: '/student/topic', element: <StudentInternshipTopics />}
           ],
         },
         {

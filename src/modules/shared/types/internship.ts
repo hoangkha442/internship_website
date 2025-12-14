@@ -1,7 +1,30 @@
+export interface InternshipTopic {
+  id: string
+  title: string
+  description: string | null
+  company_name: string | null
+  company_address: string | null
+  created_by_lecturer_id: string
+  created_at: string
+
+  max_students: number
+  current_students: number
+  status: 'available' | 'full' | 'closed'
+
+  lecturers?: {
+    id: string
+    user_id: string
+    lecturer_code: string
+    department: string
+    phone: string
+    created_at: string
+  }
+}
+
 export type InternshipTerm = {
   id: number | string
   term_name: string
-  start_date: string // ISO string
+  start_date: string 
   end_date: string
   total_weeks: number
   min_attendance_days_per_week: number
@@ -49,3 +72,16 @@ export interface InternshipTermListResponse {
   };
 }
 
+export interface RegisterInternshipPayload {
+  term_id: string;     
+  topic_id: string;     
+  lecturer_id: string;  
+  start_date: string;   
+  end_date: string;     
+}
+
+
+export interface RegisterInternshipResponse {
+  message: string;
+  internship: any;
+}
