@@ -12,6 +12,11 @@ import AdminTermsPage from '../modules/admin/pages/AdminTermsPage/AdminTermsPage
 import NotFoundPage from '../modules/shared/components/NotFoundPage'
 import StudentInternshipTopics from '../modules/student/pages/StudentInternshipTopics'
 import StudentInternshipProfilePage from '../modules/student/pages/StudentInternshipProfilePage'
+import LecturerTopicsPage from '../modules/lecturer/pages/LecturerTopicsPage'
+import { LecturerSupervisedStudentsPage } from '../modules/lecturer/pages/LecturerSupervisedStudentsPage'
+import StudentWorklogsPage from '../modules/student/pages/StudentWorklogsPage'
+import LecturerWorklogReviewPage from '../modules/lecturer/pages/LecturerWorklogReviewPage'
+// import LecturerApprovalsPage from '../modules/lecturer/pages/approvals'
 
 const AppRouter = () => {
   const element = useRoutes([
@@ -36,13 +41,17 @@ const AppRouter = () => {
           children: [
             { index: true, element: <StudentDashboard /> },
             { path: '/student/profile', element: <StudentInternshipProfilePage />},
-            { path: '/student/topic', element: <StudentInternshipTopics />}
+            { path: '/student/topic', element: <StudentInternshipTopics />},
+            { path: '/student/worklogs', element: <StudentWorklogsPage /> }
           ],
         },
         {
           path: 'lecturer',
           children: [
             { index: true, element: <LecturerDashboard /> },
+            { path: '/lecturer/topics', element: <LecturerTopicsPage />},
+            { path: '/lecturer/approvals', element: <LecturerSupervisedStudentsPage />},
+            { path: '/lecturer/worklogs', element: <LecturerWorklogReviewPage /> }
           ],
         },
         {

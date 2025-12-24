@@ -4,12 +4,17 @@ export interface StudentInternship {
   start_date: string | null
   end_date: string | null
   created_at: string
-
+progress_percent: number | null
   internship_terms?: {
     id: string
     term_name: string
     start_date: string
     end_date: string
+      total_weeks: number;
+  min_attendance_days_per_week: number;
+  min_reports: number;
+
+  created_at?: string;
   }
 
   internship_topics?: {
@@ -59,3 +64,5 @@ export interface MyTopicRegistration {
 export interface MyTopicRegistrationResponse {
   registration: MyTopicRegistration | null
 }
+
+

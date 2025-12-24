@@ -85,3 +85,16 @@ export interface RegisterInternshipResponse {
   message: string;
   internship: any;
 }
+
+export type InternshipTopicListResponse = {
+  items: InternshipTopic[]
+  meta: InternshipListMeta
+}
+
+export type CreateTopicPayload = {
+  title: string
+  description?: string | null
+  company_name?: string | null
+  company_address?: string | null
+}
+

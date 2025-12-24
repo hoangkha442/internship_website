@@ -40,6 +40,12 @@ export interface InternshipWithRelations {
     class_id: string | null
     created_at: string
     user_id: string
+    users?: {
+      id: string
+      full_name: string
+      email: string
+    }
+    
   }
 
   lecturers?: {
@@ -49,6 +55,11 @@ export interface InternshipWithRelations {
     department: string
     created_at: string
     user_id: string
+    users?: {
+      id: string
+      full_name: string
+      email: string
+    }
   }
 }
 

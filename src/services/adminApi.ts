@@ -1,4 +1,4 @@
-import type { CreateTermPayload, GetInternshipParams, InternshipListMeta, InternshipListResponse, InternshipTerm } from "../modules/shared/types/internship"
+import type { CreateTermPayload, CreateTopicPayload, GetInternshipParams, InternshipListMeta, InternshipListResponse, InternshipTerm, InternshipTermListResponse, InternshipTopicListResponse } from "../modules/shared/types/internship"
 import { api } from "./config"
 
 export const getInternships = async (
@@ -46,7 +46,26 @@ export const getInternshipTerms = async (
   return { items, meta }
 }
 
+
+
+
 export const createTerm = async (payload: CreateTermPayload) => {
   const res = await api.post('/internships/terms', payload)
   return res.data
-}
+} 
+
+export const getAllInternshipTerms = (params: GetInternshipParams) =>
+  api
+    .get<InternshipTermListResponse>('/internships/terms', { params })
+    .then((res) => res.data)
+
+export const getInternshipTopicsAdmin = (params: GetInternshipParams) =>
+  api
+    .get<InternshipTopicListResponse>('/internships/student/internship-topics', {
+      params,
+    })
+    .then((res) => res.data)
+
+
+export const createTopic = (payload: CreateTopicPayload) =>
+  api.post('/internships/topics', payload).then((res) => res.data)

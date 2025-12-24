@@ -27,6 +27,7 @@ const AdminInternshipTermsTab = () => {
   const { notify } = useNotification();
 
   const [terms, setTerms] = useState<InternshipTermWithStats[]>([]);
+  console.log('terms: ', terms);
   const [loading, setLoading] = useState(false);
 
   const [page, setPage] = useState(1);
@@ -230,7 +231,7 @@ const AdminInternshipTermsTab = () => {
         open={modalOpen}
         onCancel={closeModal}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
         title={
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-base text-primary">

@@ -21,12 +21,12 @@ const AdminInternshipsPage = () => {
           items={[
             {
               key: 'internships',
-              label: 'Danh sách thực tập',
+              label: 'Danh sách chủ đề thực tập',
               children: <AdminInternshipsTab />,
             },
             {
               key: 'terms',
-              label: 'Kỳ thực tập',
+              label: 'Danh sách kỳ thực tập',
               children: <AdminInternshipTermsTab />,
             },
           ]}
