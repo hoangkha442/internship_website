@@ -33,9 +33,9 @@ const AppSidebar = () => {
   }
 
   const isActive = (item: SidebarLink) => {
-  if (!item.path) return false
-  return location.pathname === item.path
-}
+    if (!item.path) return false
+    return location.pathname === item.path
+  }
 
   const renderNavItem = (item: SidebarLink) => {
     const active = isActive(item)
@@ -55,8 +55,20 @@ const AppSidebar = () => {
     )
   }
 
-  const avatarUrl =
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuBd7SMerdlIkXHG8hslnCQlEGKs2aF6PVHctr1GlOIYkAG9xnOV_xR_nRL1ctla-F0BoIG497-t8OCk6m11Lz8hH_oKoKGVQQ9qT0Cay93NL6c3sjdQ_YaZwsRBgU_7CbzhuXjSMkPBaFsy32Utbk8qygFNfGud-R-EbylQATUz128eQ_ReiCb8OA0wD_1OXtFIHgf4nmkLpWJoDPQveFa_Gr988WS1uMML45p5YHURPibZ1LM6TkdWp1SmhL1wzCX-JIPSIST_Ck0'
+  // ✅ resolve avatar url from backend
+  const apiBase = import.meta.env.VITE_API_BASE_URL as string
+  const avatarUrl = (() => {
+    const u = (user as any)?.avatar_url as string | null | undefined
+    if (!u) return null
+    try {
+      // u: "/uploads/avatars/xxx.png" -> full url
+      return new URL(u, apiBase).toString()
+    } catch {
+      return u
+    }
+  })()
+
+  const fallbackLetter = (user.full_name?.trim()?.[0] || 'U').toUpperCase()
 
   return (
     <aside className="flex h-full min-h-screen w-64 flex-col justify-between border-r border-slate-200 bg-white p-4">
@@ -64,10 +76,17 @@ const AppSidebar = () => {
       {/* USER INFO */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-3 p-2">
-          <div
-            className="size-10 rounded-full bg-cover bg-center"
-            style={{ backgroundImage: `url("${avatarUrl}")` }}
-          />
+          {avatarUrl ? (
+            <div
+              className="size-10 rounded-full bg-cover bg-center bg-slate-200"
+              style={{ backgroundImage: `url("${avatarUrl}")` }}
+            />
+          ) : (
+            <div className="size-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 font-semibold">
+              {fallbackLetter}
+            </div>
+          )}
+
           <div className="flex flex-col gap-1">
             <h1 className="text-slate-900 text-sm font-medium">{user.full_name}</h1>
             <div className="text-xs text-slate-500">

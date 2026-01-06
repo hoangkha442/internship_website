@@ -16,6 +16,8 @@ import LecturerTopicsPage from '../modules/lecturer/pages/LecturerTopicsPage'
 import { LecturerSupervisedStudentsPage } from '../modules/lecturer/pages/LecturerSupervisedStudentsPage'
 import StudentWorklogsPage from '../modules/student/pages/StudentWorklogsPage'
 import LecturerWorklogReviewPage from '../modules/lecturer/pages/LecturerWorklogReviewPage'
+import AdminTermTopicsPage from '../modules/admin/pages/AdminTopicsPage'
+import AccountPage from '../modules/shared/components/AccountPage'
 // import LecturerApprovalsPage from '../modules/lecturer/pages/approvals'
 
 const AppRouter = () => {
@@ -42,7 +44,8 @@ const AppRouter = () => {
             { index: true, element: <StudentDashboard /> },
             { path: '/student/profile', element: <StudentInternshipProfilePage />},
             { path: '/student/topic', element: <StudentInternshipTopics />},
-            { path: '/student/worklogs', element: <StudentWorklogsPage /> }
+            { path: '/student/worklogs', element: <StudentWorklogsPage /> },
+            { path: '/student/account', element: <AccountPage /> },
           ],
         },
         {
@@ -51,7 +54,8 @@ const AppRouter = () => {
             { index: true, element: <LecturerDashboard /> },
             { path: '/lecturer/topics', element: <LecturerTopicsPage />},
             { path: '/lecturer/approvals', element: <LecturerSupervisedStudentsPage />},
-            { path: '/lecturer/worklogs', element: <LecturerWorklogReviewPage /> }
+            { path: '/lecturer/worklogs', element: <LecturerWorklogReviewPage /> },
+            { path: '/lecturer/account', element: <AccountPage /> },
           ],
         },
         {
@@ -61,6 +65,8 @@ const AppRouter = () => {
             { path: 'students', element: <AdminStudentsPage /> },
             { path: 'lecturers', element: <AdminLecturerPage /> },
             { path: 'terms', element: <AdminTermsPage /> },
+            { path: 'topics', element: <AdminTermTopicsPage /> },
+            { path: 'account', element: <AccountPage /> },
           ],
         },
       ],

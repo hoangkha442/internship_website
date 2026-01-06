@@ -1,10 +1,9 @@
 
 
 
-import { Tabs, Card } from 'antd';
+import { Card } from 'antd';
 import PageHeader from '../../../shared/components/PageHeader';
 import AdminInternshipTermsTab from '../../_components/AdminInternshipTermsTab';
-import AdminInternshipsTab from '../../_components/AdminInternshipTabs';
 
 
 const AdminInternshipsPage = () => {
@@ -14,23 +13,8 @@ const AdminInternshipsPage = () => {
         title="Quản lý thực tập"
         subtitle="Quản lý kỳ thực tập và danh sách sinh viên thực tập."
       />
-
       <Card className="shadow-sm border border-slate-100">
-        <Tabs
-          defaultActiveKey="internships"
-          items={[
-            {
-              key: 'internships',
-              label: 'Danh sách chủ đề thực tập',
-              children: <AdminInternshipsTab />,
-            },
-            {
-              key: 'terms',
-              label: 'Danh sách kỳ thực tập',
-              children: <AdminInternshipTermsTab />,
-            },
-          ]}
-        />
+        <AdminInternshipTermsTab />
       </Card>
     </div>
   );

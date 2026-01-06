@@ -33,6 +33,7 @@ const AdminStudentsPage = () => {
   const { notify } = useNotification()
 
   const [students, setStudents] = useState<Student[]>([])
+  console.log('students: ', students);
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
@@ -69,7 +70,6 @@ const AdminStudentsPage = () => {
 
   useEffect(() => {
     loadStudents(page, limit)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleTableChange = (pagination: any) => {

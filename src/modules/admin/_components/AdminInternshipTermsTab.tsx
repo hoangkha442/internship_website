@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 
 import { EditOutlined, CalendarOutlined } from '@ant-design/icons';
 import { useNotification } from '../../../provider/Notification';
-import type { CreateTermPayload, InternshipTermListResponse, InternshipTermWithStats } from '../../shared/types/internship';
+import type { CreateTermPayload, InternshipTermListResponse2, InternshipTermWithStats } from '../../shared/types/internship';
 import { createTerm, getInternshipTerms } from '../../../services/adminApi';
 import type { SmartTableParams } from '../../shared/components/SmartTable';
 import SmartTable from '../../shared/components/SmartTable';
@@ -46,7 +46,7 @@ const AdminInternshipTermsTab = () => {
   const loadTerms = async (pageParam = 1, limitParam = 10) => {
     setLoading(true);
     try {
-      const res: InternshipTermListResponse = await getInternshipTerms({
+      const res: InternshipTermListResponse2 = await getInternshipTerms({
         page: pageParam,
         limit: limitParam,
       });

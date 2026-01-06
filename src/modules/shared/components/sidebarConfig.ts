@@ -28,7 +28,7 @@ export const sidebarConfig: Record<SidebarRole, SidebarConfig> = {
       { key: 'admin-statistics', label: 'Thống kê - Báo cáo', icon: 'query_stats', path: '/admin/statistics' },
     ],
     bottom: [
-      { key: 'admin-settings', label: 'Cài đặt hệ thống', icon: 'settings', path: '/admin/settings' },
+      { key: 'admin-settings', label: 'Cài đặt hệ thống', icon: 'settings', path: '/admin/account' },
       { key: 'admin-logout', label: 'Đăng xuất', icon: 'logout', action: 'logout' },
     ],
   },
@@ -44,7 +44,7 @@ export const sidebarConfig: Record<SidebarRole, SidebarConfig> = {
       { key: 'lec-notes', label: 'Ghi chú & phản hồi', icon: 'chat', path: '/lecturer/notes' },
     ],
     bottom: [
-      { key: 'lec-settings', label: 'Cài đặt', icon: 'settings', path: '/lecturer/settings' },
+      { key: 'lec-settings', label: 'Cài đặt', icon: 'settings', path: '/lecturer/account' },
       { key: 'lec-logout', label: 'Đăng xuất', icon: 'logout', action: 'logout' },
     ],
   },
@@ -57,7 +57,7 @@ export const sidebarConfig: Record<SidebarRole, SidebarConfig> = {
       { key: 'stu-attendance', label: 'Điểm danh', icon: 'calendar_month', path: '/student/attendance' },
     ],
     bottom: [
-      { key: 'stu-settings', label: 'Cài đặt', icon: 'settings', path: '/student/settings' },
+      { key: 'stu-settings', label: 'Cài đặt', icon: 'settings', path: '/student/account' },
       { key: 'stu-logout', label: 'Đăng xuất', icon: 'logout', action: 'logout' },
     ],
   },

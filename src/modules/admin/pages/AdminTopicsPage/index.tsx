@@ -19,14 +19,14 @@ import dayjs from "dayjs";
 import type {
   InternshipTermWithStats,
   InternshipWithRelations,
-} from "../../../modules/shared/types/internship";
+} from "../../../../modules/shared/types/internship";
 
 import {
   getAllInternshipTerms,
   getInternships,
   getTopicsByTermForAdmin,
   type InternshipTopic,
-} from "../../../services/adminApi";
+} from "../../../../services/adminApi";
 
 const { Text } = Typography;
 
@@ -190,7 +190,6 @@ export default function AdminTermTopicsPage() {
   useEffect(() => {
     if (!selectedTermId) return;
     loadTopicsOfTerm(selectedTermId);
-    // reset some filters when changing term (tuỳ bạn)
     setLecturerId("all");
     setHasStudent("all");
     setQ("");
