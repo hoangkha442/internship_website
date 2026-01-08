@@ -1,13 +1,28 @@
+import { useMemo } from "react";
+import { useAuth } from "../hooks/useAuth";
+
 const AppHeader = () => {
+  const { user } = useAuth();
+
+  const apiBase = import.meta.env.VITE_API_BASE_URL as string;
+
+  const avatarUrl = useMemo(() => {
+    const u = (user as any)?.avatar_url as string | null | undefined;
+    if (!u) return null;
+    try {
+      return new URL(u, apiBase).toString(); 
+    } catch {
+      return u;
+    }
+  }, [user, apiBase]);
+
+  const fallbackLetter = (user?.full_name?.trim()?.[0] || "U").toUpperCase();
+
   return (
     <div className="flex items-center justify-between w-full">
       <div className="flex items-center gap-2">
         <div className="size-6 text-primary!">
-          <svg
-            fill="none"
-            viewBox="0 0 48 48"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+          <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z"
               fill="currentColor"
@@ -19,6 +34,7 @@ const AppHeader = () => {
           Internship Manager
         </h2>
       </div>
+
       <div className="flex flex-1 items-center justify-end gap-4">
         <label className="relative flex flex-col min-w-40 h-10! max-w-64">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
@@ -38,14 +54,21 @@ const AppHeader = () => {
           <span className="material-symbols-outlined">settings</span>
         </button>
 
-        <div
-          className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-          data-alt="User avatar for Dr. Eleanor Vance"
-          style={{
-            backgroundImage:
-              'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBd7SMerdlIkXHG8hslnCQlEGKs2aF6PVHctr1GlOIYkAG9xnOV_xR_nRL1ctla-F0BoIG497-t8OCk6m11Lz8hH_oKoKGVQQ9qT0Cay93NL6c3sjdQ_YaZwsRBgU_7CbzhuXjSMkPBaFsy32Utbk8qygFNfGud-R-EbylQATUz128eQ_ReiCb8OA0wD_1OXtFIHgf4nmkLpWJoDPQveFa_Gr988WS1uMML45p5YHURPibZ1LM6TkdWp1SmhL1wzCX-JIPSIST_Ck0")',
-          }}
-        />
+        {/* AVATAR (from backend) */}
+        {avatarUrl ? (
+          <div
+            className="bg-center bg-no-repeat bg-cover rounded-full size-10 bg-slate-200"
+            style={{ backgroundImage: `url("${avatarUrl}")` }}
+            title={user?.full_name || "User"}
+          />
+        ) : (
+          <div
+            className="rounded-full size-10 bg-slate-200 flex items-center justify-center text-slate-700 font-semibold"
+            title={user?.full_name || "User"}
+          >
+            {fallbackLetter}
+          </div>
+        )}
       </div>
     </div>
   );

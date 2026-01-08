@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   DatePicker,
+  Form,
   Input,
   Modal,
   Space,
@@ -38,34 +39,46 @@ const statusTag = (st?: string | null) => {
   return <Tag color={x.color}>{x.label}</Tag>;
 };
 
+const approvalTag = (r: any) => {
+  const isLeave = r?.status === "absent" || r?.status === "excused";
+  if (!isLeave) return <Tag>—</Tag>;
+
+  if (r.approved_at) return <Tag color="green">Đã duyệt</Tag>;
+  if (r.rejection_reason) return <Tag color="red">Bị từ chối</Tag>;
+  return <Tag color="gold">Chờ duyệt</Tag>;
+};
+
 export default function AttendancePage() {
   const { message } = App.useApp();
 
   const isDev = import.meta.env.DEV;
-  const [devIp, setDevIp] = useState<string>(
-    () => localStorage.getItem("dev_ip") || "203.0.113.10"
-  );
+  const [devIp, setDevIp] = useState<string>(() => localStorage.getItem("dev_ip") || "203.0.113.10");
 
   const [loadingToday, setLoadingToday] = useState(false);
   const [recordToday, setRecordToday] = useState<any>(null);
 
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [items, setItems] = useState<any[]>([]);
-
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
 
-  const [range, setRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([
-    null,
-    null,
-  ]);
+  const [range, setRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
 
   // loading riêng cho action checkin/checkout
   const [actionLoading, setActionLoading] = useState<null | "checkin" | "checkout">(null);
 
+  // ===== Xin nghỉ modal =====
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [leaveSubmitting, setLeaveSubmitting] = useState(false);
+  const [leaveForm] = Form.useForm();
+
   const checkedIn = !!recordToday?.check_in_time;
   const checkedOut = !!recordToday?.check_out_time;
+
+  // Nếu đã xin nghỉ (excused) và chưa bị reject -> không cho checkin/checkout nữa
+  const hasLeaveRequestActive =
+    recordToday?.status === "excused" && !recordToday?.rejection_reason && !recordToday?.check_in_time && !recordToday?.check_out_time;
 
   const applyDevIpHeader = () => {
     if (!isDev) return;
@@ -110,17 +123,15 @@ export default function AttendancePage() {
 
   useEffect(() => {
     applyDevIpHeader();
-
     loadToday();
     loadHistory(1, limit);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const confirmAction = async (type: "checkin" | "checkout") => {
     if (actionLoading) return; // tránh spam
     applyDevIpHeader();
 
-    // loading nhẹ lúc lấy location
     setActionLoading(type);
 
     let pos: { lat: number; lng: number; accuracy_m: number } | null = null;
@@ -137,13 +148,11 @@ export default function AttendancePage() {
       setActionLoading(null);
       return;
     } finally {
-      // tắt loading "đang lấy location"
       setActionLoading(null);
     }
 
     const title = type === "checkin" ? "Xác nhận Check-in" : "Xác nhận Check-out";
 
-    // tạo modal instance để update loading ok button
     const modal = Modal.confirm({
       title,
       content: (
@@ -161,9 +170,7 @@ export default function AttendancePage() {
       ),
       okText: "Xác nhận",
       cancelText: "Huỷ",
-      okButtonProps: { disabled: !!actionLoading || loadingToday || loadingHistory },
       onOk: async () => {
-        // bật loading cho OK
         setActionLoading(type);
         modal.update({ okButtonProps: { loading: true } });
 
@@ -185,6 +192,44 @@ export default function AttendancePage() {
         }
       },
     });
+  };
+
+  // ====== Xin nghỉ (Student) ======
+  const openLeaveModal = () => {
+    leaveForm.setFieldsValue({
+      date: dayjs(), // mặc định hôm nay
+      reason: "",
+    });
+    setLeaveOpen(true);
+  };
+
+  const submitLeave = async () => {
+    try {
+      const values = await leaveForm.validateFields();
+      const date = values.date.format("YYYY-MM-DD");
+      const reason = String(values.reason || "").trim();
+
+      setLeaveSubmitting(true);
+
+      // ✅ mặc định có phép (excused) + lý do bắt buộc
+      await attendanceApi.requestLeave({
+        date,
+        status: "excused",
+        reason,
+      });
+
+      message.success("Gửi xin nghỉ (có phép) thành công");
+      setLeaveOpen(false);
+
+      await Promise.all([loadToday(), loadHistory(1, limit)]);
+    } catch (e: any) {
+      // validateFields sẽ throw object (không phải axios) -> ignore
+      if (e?.errorFields) return;
+
+      message.error(e?.response?.data?.message || e?.message || "Gửi xin nghỉ thất bại");
+    } finally {
+      setLeaveSubmitting(false);
+    }
   };
 
   const columns: ColumnsType<any> = useMemo(
@@ -210,18 +255,17 @@ export default function AttendancePage() {
         render: (v) => statusTag(v),
       },
       {
-        title: "Xác thực",
-        dataIndex: "verified_method",
-        render: (v) => <Tag>{v || "—"}</Tag>,
+        title: "Lý do",
+        dataIndex: "reason",
+        render: (v, r) => {
+          const isLeave = r?.status === "absent" || r?.status === "excused";
+          return isLeave ? <span>{v || "—"}</span> : <span>—</span>;
+        },
         responsive: ["md"],
       },
       {
         title: "Duyệt",
-        render: (_, r) => {
-          if (r.approved_at) return <Tag color="green">Đã duyệt</Tag>;
-          if (r.rejection_reason) return <Tag color="red">Bị từ chối</Tag>;
-          return <Tag>Chưa duyệt</Tag>;
-        },
+        render: (_, r) => approvalTag(r),
         responsive: ["lg"],
       },
     ],
@@ -246,16 +290,25 @@ export default function AttendancePage() {
               <Tag color={checkedOut ? "blue" : "default"}>
                 Check-out: {checkedOut ? fmtTime(recordToday.check_out_time) : "Chưa"}
               </Tag>
+
               {statusTag(recordToday?.status)}
-              {recordToday?.verified_method ? <Tag>{recordToday.verified_method}</Tag> : null}
+              {(recordToday?.status === "absent" || recordToday?.status === "excused") ? approvalTag(recordToday) : null}
             </div>
+
+            {/* show rejection reason if any */}
+            {recordToday?.rejection_reason ? (
+              <div className="mt-2 text-sm">
+                <Tag color="red">Lý do từ chối</Tag>{" "}
+                <span className="text-slate-700">{recordToday.rejection_reason}</span>
+              </div>
+            ) : null}
           </div>
 
           <Space wrap>
             <Button
               type="primary"
               onClick={() => confirmAction("checkin")}
-              disabled={checkedIn || loadingToday || loadingHistory || !!actionLoading}
+              disabled={checkedIn || loadingToday || loadingHistory || !!actionLoading || hasLeaveRequestActive}
               loading={actionLoading === "checkin"}
             >
               Check-in
@@ -263,10 +316,17 @@ export default function AttendancePage() {
 
             <Button
               onClick={() => confirmAction("checkout")}
-              disabled={!checkedIn || checkedOut || loadingToday || loadingHistory || !!actionLoading}
+              disabled={!checkedIn || checkedOut || loadingToday || loadingHistory || !!actionLoading || hasLeaveRequestActive}
               loading={actionLoading === "checkout"}
             >
               Check-out
+            </Button>
+
+            <Button
+              onClick={openLeaveModal}
+              disabled={loadingToday || loadingHistory || !!actionLoading || checkedIn || checkedOut || hasLeaveRequestActive}
+            >
+              Xin nghỉ
             </Button>
           </Space>
         </div>
@@ -274,8 +334,7 @@ export default function AttendancePage() {
         {isDev ? (
           <div className="mt-4 p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50">
             <div className="text-xs text-slate-500 mb-2">
-              DEV: giả lập “WiFi trường” bằng header <b>x-dev-ip</b> (backend sẽ đọc nếu NODE_ENV !=
-              production)
+              DEV: giả lập “WiFi trường” bằng header <b>x-dev-ip</b> (backend sẽ đọc nếu NODE_ENV != production)
             </div>
             <Space wrap>
               <Input
@@ -308,11 +367,7 @@ export default function AttendancePage() {
               allowClear
             />
 
-            <Button
-              onClick={() => loadHistory(1, limit)}
-              loading={loadingHistory}
-              disabled={loadingToday || !!actionLoading}
-            >
+            <Button onClick={() => loadHistory(1, limit)} loading={loadingHistory} disabled={loadingToday || !!actionLoading}>
               Lọc
             </Button>
 
@@ -345,6 +400,39 @@ export default function AttendancePage() {
           />
         </div>
       </Card>
+
+      {/* LEAVE MODAL */}
+      <Modal
+        open={leaveOpen}
+        title="Gửi xin nghỉ (có phép)"
+        okText="Gửi"
+        cancelText="Huỷ"
+        onCancel={() => setLeaveOpen(false)}
+        onOk={submitLeave}
+        okButtonProps={{ loading: leaveSubmitting }}
+        destroyOnClose
+      >
+        <Form form={leaveForm} layout="vertical">
+          <Form.Item
+            label="Ngày xin nghỉ"
+            name="date"
+            rules={[{ required: true, message: "Vui lòng chọn ngày" }]}
+          >
+            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+          </Form.Item>
+
+          <Form.Item
+            label="Lý do (bắt buộc)"
+            name="reason"
+            rules={[
+              { required: true, message: "Vui lòng nhập lý do xin nghỉ" },
+              { min: 5, message: "Lý do quá ngắn" },
+            ]}
+          >
+            <Input.TextArea rows={4} placeholder="Nhập lý do xin nghỉ..." />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }
