@@ -19,6 +19,7 @@ import LecturerWorklogReviewPage from '../modules/lecturer/pages/LecturerWorklog
 import AdminTermTopicsPage from '../modules/admin/pages/AdminTopicsPage'
 import AccountPage from '../modules/shared/components/AccountPage'
 import AttendancePage from '../modules/student/pages/AttendancePage'
+import AttendanceLecturerPage from '../modules/lecturer/pages/AttendanceLecturerPage'
 // import LecturerApprovalsPage from '../modules/lecturer/pages/approvals'
 
 const AppRouter = () => {
@@ -58,6 +59,7 @@ const AppRouter = () => {
             { path: '/lecturer/approvals', element: <LecturerSupervisedStudentsPage />},
             { path: '/lecturer/worklogs', element: <LecturerWorklogReviewPage /> },
             { path: '/lecturer/account', element: <AccountPage /> },
+            { path: '/lecturer/attendance', element: <AttendanceLecturerPage /> },
           ],
         },
         {

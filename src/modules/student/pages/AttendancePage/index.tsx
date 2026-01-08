@@ -95,8 +95,7 @@ export default function AttendancePage() {
       const to = range[1] ? range[1].format("YYYY-MM-DD") : undefined;
 
       const res = await attendanceApi.history({ page: p, limit: l, from, to });
-
-      setItems(res.items ?? []);
+      setItems(res.data ?? []);
       setTotal(res.meta?.total ?? 0);
       setPage(res.meta?.page ?? p);
       setLimit(res.meta?.limit ?? l);
