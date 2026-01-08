@@ -12,6 +12,15 @@ api.interceptors.request.use((config) => {
     config.headers = config.headers || {}
     ;(config.headers as any).Authorization = `Bearer ${token}`
   }
+
+  // Giả lập IP trường học trong môi trường dev
+  if (import.meta.env.DEV) {
+    const devIp = import.meta.env.VITE_DEV_SCHOOL_IP
+    if (devIp && config.url?.startsWith('/attendance')) {
+      config.headers = config.headers || {}
+      ;(config.headers as any)['x-dev-ip'] = devIp
+    }
+  }
   return config
 })
 

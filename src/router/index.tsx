@@ -18,6 +18,7 @@ import StudentWorklogsPage from '../modules/student/pages/StudentWorklogsPage'
 import LecturerWorklogReviewPage from '../modules/lecturer/pages/LecturerWorklogReviewPage'
 import AdminTermTopicsPage from '../modules/admin/pages/AdminTopicsPage'
 import AccountPage from '../modules/shared/components/AccountPage'
+import AttendancePage from '../modules/student/pages/AttendancePage'
 // import LecturerApprovalsPage from '../modules/lecturer/pages/approvals'
 
 const AppRouter = () => {
@@ -46,6 +47,7 @@ const AppRouter = () => {
             { path: '/student/topic', element: <StudentInternshipTopics />},
             { path: '/student/worklogs', element: <StudentWorklogsPage /> },
             { path: '/student/account', element: <AccountPage /> },
+            { path: '/student/attendance', element: <AttendancePage /> },
           ],
         },
         {
