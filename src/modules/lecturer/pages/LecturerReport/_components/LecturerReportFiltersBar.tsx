@@ -1,14 +1,13 @@
 import { Button, DatePicker, Input, Select, Tag } from "antd";
 import type { Dayjs } from "dayjs";
 import { useMemo } from "react";
-import type { ReportStatus } from "../../../../../services/reportApi";
+import type { ReportFileFilter, ReportSort, ReportStatus } from "../../../../../services/reportApi";
 
 const { RangePicker } = DatePicker;
 
 export type StatusFilter = "all" | ReportStatus;
-export type PassFilter = "all" | "pending" | "pass" | "fail";
-export type FileFilter = "all" | "has" | "none";
-export type SortFilter = "submitted_desc" | "submitted_asc" | "week_desc" | "week_asc";
+export type FileFilter = ReportFileFilter;
+export type SortFilter = ReportSort;
 
 export default function LecturerReportFiltersBar(props: {
   q: string;
@@ -19,9 +18,6 @@ export default function LecturerReportFiltersBar(props: {
 
   status: StatusFilter;
   setStatus: (v: StatusFilter) => void;
-
-  pass: PassFilter;
-  setPass: (v: PassFilter) => void;
 
   hasFile: FileFilter;
   setHasFile: (v: FileFilter) => void;
@@ -44,19 +40,9 @@ export default function LecturerReportFiltersBar(props: {
     []
   );
 
-  const passOptions = useMemo(
-    () => [
-      { value: "all", label: "Pass: Tất cả" },
-      { value: "pending", label: "Chờ kết luận" },
-      { value: "pass", label: "Pass" },
-      { value: "fail", label: "Fail" },
-    ],
-    []
-  );
-
   const fileOptions = useMemo(
     () => [
-      { value: "all", label: "File: Tất cả" },
+      { value: "all", label: "Tất cả" },
       { value: "has", label: "Có file" },
       { value: "none", label: "Không file" },
     ],
@@ -97,13 +83,6 @@ export default function LecturerReportFiltersBar(props: {
       />
 
       <Select
-        value={props.pass}
-        onChange={props.setPass as any}
-        options={passOptions}
-        style={{ width: 160 }}
-      />
-
-      <Select
         value={props.hasFile}
         onChange={props.setHasFile as any}
         options={fileOptions}
@@ -114,7 +93,7 @@ export default function LecturerReportFiltersBar(props: {
         value={props.sort}
         onChange={props.setSort as any}
         options={sortOptions}
-        style={{ width: 170 }}
+        style={{ width: 160 }}
       />
 
       <Button onClick={props.onReset}>Reset</Button>

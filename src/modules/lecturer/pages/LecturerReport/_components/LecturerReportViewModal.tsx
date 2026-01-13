@@ -20,13 +20,8 @@ export default function LecturerReportViewModal(props: {
 
   const passTag = () => {
     if (!r) return null;
-
-    // chưa review thì luôn pending
     if (r.status !== "reviewed" || !r.reviewed_at) return <Tag color="gold">Chờ duyệt</Tag>;
-
-    // đã review nhưng chưa kết luận pass/fail
     if (r.is_pass == null) return <Tag>Chưa có kết luận</Tag>;
-
     return r.is_pass ? <Tag color="green">Pass</Tag> : <Tag color="red">Fail</Tag>;
   };
 
@@ -36,7 +31,7 @@ export default function LecturerReportViewModal(props: {
       onCancel={props.onClose}
       onOk={props.onClose}
       title="Chi tiết báo cáo"
-      width={880}
+      width={860}
       okText="Đóng"
       cancelButtonProps={{ style: { display: "none" } }}
     >
@@ -46,7 +41,9 @@ export default function LecturerReportViewModal(props: {
             {statusTag(r.status)}
             <Tag>Report #{r.report_no ?? "-"}</Tag>
             <Tag>Week {r.week_no ?? "-"}</Tag>
-            <Tag>Nộp: {r.submitted_at ? dayjs(r.submitted_at).format("DD/MM/YYYY HH:mm") : "-"}</Tag>
+            <Tag>
+              Nộp: {r.submitted_at ? dayjs(r.submitted_at).format("DD/MM/YYYY HH:mm") : "-"}
+            </Tag>
           </div>
 
           <Title level={4} style={{ margin: 0 }}>
@@ -73,11 +70,14 @@ export default function LecturerReportViewModal(props: {
           </div>
 
           <div className="border-t pt-3">
-            <div className="font-semibold mb-1">Đánh giá giảng viên</div>
+            <div className="font-semibold mb-1">Kết quả duyệt</div>
+
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <Tag>Điểm: {r.score ?? "-"}</Tag>
               {passTag()}
-              <Tag>Review: {r.reviewed_at ? dayjs(r.reviewed_at).format("DD/MM/YYYY HH:mm") : "-"}</Tag>
+              <Tag>
+                Review: {r.reviewed_at ? dayjs(r.reviewed_at).format("DD/MM/YYYY HH:mm") : "-"}
+              </Tag>
             </div>
 
             {r.feedback && String(r.feedback).trim() ? (

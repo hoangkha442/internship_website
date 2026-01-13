@@ -7,6 +7,8 @@ export type ReportStatus = "submitted" | "reviewed" | "needs_revision";
 export type ReportFileFilter = "all" | "has" | "none";
 export type ReportSort = "submitted_desc" | "submitted_asc" | "week_desc" | "week_asc";
 
+
+
 export type LecturerSupervisedItem = {
   internship_id: string | number;
 
@@ -21,6 +23,8 @@ export type LecturerSupervisedItem = {
   end_date?: string | null;
   status?: string | null;
 };
+
+
 
 export type ReportAttachment = {
   id: string | number;
@@ -220,8 +224,28 @@ export const reviewReport = async (reportId: string | number, payload: ReviewRep
 
 
 
-export const getLecturerSupervisedStudents = async () => {
+export const getLecturerSupervisedStudents = async (): Promise<LecturerSupervisedItem[]> => {
   const res = await api.get("/internships/lecturer/students");
-  const items = (res.data?.data ?? res.data ?? []) as LecturerSupervisedItem[];
-  return items;
+
+  const raw = (res.data?.data ?? res.data ?? []) as any[];
+
+  return raw.map((x) => ({
+    internship_id: x.internship_id ?? x.id,
+
+    student_id: x.student_id ?? x.students?.id,
+    student_code: x.student_code ?? x.students?.student_code ?? null,
+
+    student_name:
+      x.student_name ??
+      x.students?.users?.full_name ??
+      x.students?.full_name ??
+      null,
+
+    topic_title: x.topic_title ?? x.internship_topics?.title ?? null,
+    term_name: x.term_name ?? x.internship_terms?.term_name ?? null,
+
+    start_date: x.start_date ?? null,
+    end_date: x.end_date ?? null,
+    status: x.status ?? null,
+  }));
 };

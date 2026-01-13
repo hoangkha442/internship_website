@@ -5,59 +5,76 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   getLecturerReports,
+  getLecturerSupervisedStudents,
   reviewReport,
+  type GetReportsParams,
+  type LecturerSupervisedItem,
   type ProgressReport,
-  type ReviewReportPayload,
 } from "../../../../services/reportApi";
 
 import LecturerReportFiltersBar, {
   type FileFilter,
-  type PassFilter,
   type SortFilter,
   type StatusFilter,
 } from "./_components/LecturerReportFiltersBar";
 
 import LecturerReportViewModal from "./_components/LecturerReportViewModal";
 import LecturerReportReviewDrawer from "./_components/LecturerReportReviewDrawer";
+import InternshipPicker from "./_components/InternshipPicker";
 
-/**
- * ⚠️ API hiện tại: getLecturerReports(internshipId, page, limit)
- * => nếu bạn muốn "toàn bộ sinh viên phụ trách" thì backend nên có endpoint list internships của lecturer.
- * Tạm thời page này dùng internshipId hard-code/nhập tay theo nhu cầu.
- */
+const statusTag = (s?: string | null) => {
+  if (s === "reviewed") return <Tag color="green">Đã duyệt</Tag>;
+  if (s === "needs_revision") return <Tag color="red">Cần chỉnh sửa</Tag>;
+  return <Tag color="gold">Đã nộp</Tag>;
+};
+
+const passTag = (r: ProgressReport) => {
+  if (r.status !== "reviewed" || !r.reviewed_at)
+    return <Tag color="gold">Chờ duyệt</Tag>;
+  if (r.is_pass == null) return <Tag>Chưa kết luận</Tag>;
+  return r.is_pass ? (
+    <Tag color="green">Pass</Tag>
+  ) : (
+    <Tag color="red">Fail</Tag>
+  );
+};
+
 export default function LecturerProgressReportsPage() {
   const { message } = App.useApp();
 
-  // ===== chọn internship =====
-  // 👉 Nếu bạn có API lấy danh sách internship của giảng viên, thay cái này bằng dropdown
-  const [internshipId, setInternshipId] = useState<string | number | null>(null);
+  // ===== internships supervised (REAL) =====
+  const [internships, setInternships] = useState<LecturerSupervisedItem[]>([]);
+  console.log("internships: ", internships);
+  const [loadingInternships, setLoadingInternships] = useState(false);
+  const [internshipId, setInternshipId] = useState<string | number | null>(
+    null
+  );
 
   // ===== filters =====
   const [q, setQ] = useState("");
   const [qDebounced, setQDebounced] = useState("");
-  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
+  const [dateRange, setDateRange] = useState<
+    [Dayjs | null, Dayjs | null] | null
+  >(null);
   const [status, setStatus] = useState<StatusFilter>("all");
-  const [pass, setPass] = useState<PassFilter>("all");
   const [hasFile, setHasFile] = useState<FileFilter>("all");
   const [sort, setSort] = useState<SortFilter>("submitted_desc");
 
-  // ===== list =====
+  // ===== list state =====
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<ProgressReport[]>([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
 
-  // ===== view modal =====
+  // ===== view/review =====
   const [openView, setOpenView] = useState(false);
   const [viewItem, setViewItem] = useState<ProgressReport | null>(null);
 
-  // ===== review drawer =====
   const [openReview, setOpenReview] = useState(false);
   const [reviewItem, setReviewItem] = useState<ProgressReport | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // debounce search
   useEffect(() => {
     const t = setTimeout(() => setQDebounced(q.trim()), 350);
     return () => clearTimeout(t);
@@ -67,16 +84,55 @@ export default function LecturerProgressReportsPage() {
     setQ("");
     setDateRange(null);
     setStatus("all");
-    setPass("all");
     setHasFile("all");
     setSort("submitted_desc");
   };
+
+  const loadInternships = useCallback(async () => {
+    setLoadingInternships(true);
+    try {
+      const data = await getLecturerSupervisedStudents();
+      setInternships(data ?? []);
+
+      if (!internshipId && data?.length) {
+        setInternshipId(data[0].internship_id); 
+      }
+    } catch (err: any) {
+      message.error(
+        err?.response?.data?.message || "Không lấy được internship phụ trách"
+      );
+      setInternships([]);
+      setInternshipId(null);
+    } finally {
+      setLoadingInternships(false);
+    }
+  }, [message, internshipId]);
 
   const loadReports = useCallback(
     async (internId: string | number, p: number, l: number) => {
       setLoading(true);
       try {
-        const res = await getLecturerReports(internId, { page: p, limit: l });
+        const from = dateRange?.[0]
+          ? dayjs(dateRange[0]).startOf("day").toISOString()
+          : undefined;
+        const to = dateRange?.[1]
+          ? dayjs(dateRange[1]).endOf("day").toISOString()
+          : undefined;
+
+        const params: GetReportsParams = {
+          page: p,
+          limit: l,
+          q: qDebounced || undefined,
+          from,
+          to,
+          status,
+          hasFile,
+          sort,
+        };
+
+        // ✅ signature đúng: (internshipId, params)
+        const res = await getLecturerReports(internId, params);
+
         setItems(res.items ?? []);
         setTotal(res.meta?.total ?? 0);
         setPage(p);
@@ -84,56 +140,28 @@ export default function LecturerProgressReportsPage() {
       } catch (err: any) {
         message.error(err?.response?.data?.message || "Không tải được báo cáo");
         setItems([]);
+        setTotal(0);
       } finally {
         setLoading(false);
       }
     },
-    [message]
+    [message, dateRange, qDebounced, status, hasFile, sort]
   );
 
-  // 👉 DEMO: set internshipId bằng 1 giá trị có thật (bạn thay theo thực tế)
   useEffect(() => {
-    // ví dụ: bạn có thể set từ query param, hoặc từ page trước (approvals)
-    // setInternshipId(123);
-  }, []);
+    loadInternships();
+  }, [loadInternships]);
 
   useEffect(() => {
     if (!internshipId) return;
     loadReports(internshipId, 1, limit);
   }, [internshipId, limit, loadReports]);
 
-  const openViewModal = (r: ProgressReport) => {
-    setViewItem(r);
-    setOpenView(true);
-  };
-
-  const openReviewDrawer = (r: ProgressReport) => {
-    setReviewItem(r);
-    setOpenReview(true);
-  };
-
-  const closeReviewDrawer = () => {
-    setOpenReview(false);
-    setReviewItem(null);
-  };
-
-  const statusTag = (s?: string | null) => {
-    if (s === "reviewed") return <Tag color="green">Đã duyệt</Tag>;
-    if (s === "needs_revision") return <Tag color="red">Cần chỉnh sửa</Tag>;
-    return <Tag color="gold">Đã nộp</Tag>;
-  };
-
-  const passTag = (r: ProgressReport) => {
-    if (r.status !== "reviewed" || !r.reviewed_at) return <Tag color="gold">Chờ duyệt</Tag>;
-    if (r.is_pass == null) return <Tag>Chưa kết luận</Tag>;
-    return r.is_pass ? <Tag color="green">Pass</Tag> : <Tag color="red">Fail</Tag>;
-  };
-
-  // ===== apply filters client-side =====
   const filteredItems = useMemo(() => {
+    // ✅ Nếu backend đã filter thì có thể return items luôn.
+    // Mình vẫn giữ fallback lọc nhẹ để an toàn.
     let arr = [...items];
 
-    // search in title + content + feedback (HTML)
     if (qDebounced) {
       const key = qDebounced.toLowerCase();
       arr = arr.filter((r) => {
@@ -144,33 +172,17 @@ export default function LecturerProgressReportsPage() {
       });
     }
 
-    // date range theo submitted_at
     if (dateRange?.[0] && dateRange?.[1]) {
-      const from = dayjs(dateRange[0]).startOf("day");
-      const to = dayjs(dateRange[1]).endOf("day");
+      const from = dayjs(dateRange[0]).startOf("day").valueOf();
+      const to = dayjs(dateRange[1]).endOf("day").valueOf();
       arr = arr.filter((r) => {
-        const d = r.submitted_at ? dayjs(r.submitted_at) : null;
-        if (!d) return false;
-        return !d.isBefore(from) && !d.isAfter(to); // ✅ không cần isBetween plugin
+        const v = r.submitted_at ? dayjs(r.submitted_at).valueOf() : 0;
+        return v >= from && v <= to;
       });
     }
 
-    // status
-    if (status !== "all") {
-      arr = arr.filter((r) => (r.status ?? "submitted") === status);
-    }
+    if (status !== "all") arr = arr.filter((r) => r.status === status);
 
-    // pass
-    if (pass !== "all") {
-      arr = arr.filter((r) => {
-        const isPending = r.status !== "reviewed" || !r.reviewed_at || r.is_pass == null;
-        if (pass === "pending") return isPending;
-        if (pass === "pass") return r.status === "reviewed" && r.is_pass === true;
-        return r.status === "reviewed" && r.is_pass === false;
-      });
-    }
-
-    // hasFile
     if (hasFile !== "all") {
       arr = arr.filter((r) => {
         const n = r.report_attachments?.length ?? 0;
@@ -178,12 +190,11 @@ export default function LecturerProgressReportsPage() {
       });
     }
 
-    // sort
     arr.sort((a, b) => {
       const aSub = dayjs(a.submitted_at || 0).valueOf();
       const bSub = dayjs(b.submitted_at || 0).valueOf();
-      const aWeek = Number(a.week_no ?? 0);
-      const bWeek = Number(b.week_no ?? 0);
+      const aWeek = a.week_no ?? -1;
+      const bWeek = b.week_no ?? -1;
 
       switch (sort) {
         case "submitted_asc":
@@ -199,25 +210,70 @@ export default function LecturerProgressReportsPage() {
     });
 
     return arr;
-  }, [items, qDebounced, dateRange, status, pass, hasFile, sort]);
+  }, [items, qDebounced, dateRange, status, hasFile, sort]);
 
-  const handleReviewSubmit = async (payload: ReviewReportPayload) => {
+  const columns: ColumnsType<ProgressReport> = [
+    {
+      title: "Report",
+      width: 90,
+      render: (_, r) => <Tag>#{r.report_no ?? "-"}</Tag>,
+    },
+    {
+      title: "Week",
+      width: 90,
+      render: (_, r) => <Tag>{r.week_no ?? "-"}</Tag>,
+    },
+    { title: "Tiêu đề", dataIndex: "title", ellipsis: true },
+    { title: "Trạng thái", width: 130, render: (_, r) => statusTag(r.status) },
+    { title: "Kết luận", width: 120, render: (_, r) => passTag(r) },
+    {
+      title: "Nộp lúc",
+      width: 170,
+      render: (_, r) =>
+        r.submitted_at ? dayjs(r.submitted_at).format("DD/MM/YYYY HH:mm") : "-",
+    },
+    {
+      title: "File",
+      width: 80,
+      render: (_, r) => <Tag>{r.report_attachments?.length ?? 0}</Tag>,
+    },
+    {
+      title: "",
+      width: 220,
+      render: (_, r) => (
+        <div className="flex justify-end gap-2">
+          <Button
+            size="small"
+            onClick={() => {
+              setViewItem(r);
+              setOpenView(true);
+            }}
+          >
+            Xem
+          </Button>
+          <Button
+            size="small"
+            type="primary"
+            onClick={() => {
+              setReviewItem(r);
+              setOpenReview(true);
+            }}
+          >
+            Duyệt
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const handleReviewSubmit = async (payload: any) => {
     if (!reviewItem || !internshipId) return;
-
     try {
       setActionLoading(true);
-
-      const res = await reviewReport(reviewItem.id, payload);
-
-      // ✅ update local list ngay
-      setItems((prev) =>
-        prev.map((x) => (String(x.id) === String(reviewItem.id) ? res.report : x))
-      );
-
+      await reviewReport(reviewItem.id, payload);
       message.success("Đã duyệt báo cáo");
-      closeReviewDrawer();
-
-      // ✅ sync lại từ server cho chắc
+      setOpenReview(false);
+      setReviewItem(null);
       await loadReports(internshipId, page, limit);
     } catch (err: any) {
       message.error(err?.response?.data?.message || "Duyệt thất bại");
@@ -226,90 +282,33 @@ export default function LecturerProgressReportsPage() {
     }
   };
 
-  const columns: ColumnsType<ProgressReport> = [
-    {
-      title: "Report",
-      render: (_, r) => <Tag>#{r.report_no ?? "-"}</Tag>,
-      width: 90,
-    },
-    {
-      title: "Week",
-      render: (_, r) => <Tag>{r.week_no ?? "-"}</Tag>,
-      width: 90,
-    },
-    {
-      title: "Tiêu đề",
-      dataIndex: "title",
-      ellipsis: true,
-    },
-    {
-      title: "Trạng thái",
-      render: (_, r) => statusTag(r.status),
-      width: 130,
-    },
-    {
-      title: "Pass",
-      render: (_, r) => passTag(r),
-      width: 120,
-    },
-    {
-      title: "Nộp lúc",
-      render: (_, r) => (r.submitted_at ? dayjs(r.submitted_at).format("DD/MM/YYYY HH:mm") : "-"),
-      width: 170,
-    },
-    {
-      title: "File",
-      render: (_, r) => <Tag>{r.report_attachments?.length ?? 0}</Tag>,
-      width: 80,
-    },
-    {
-      title: "",
-      width: 210,
-      render: (_, r) => (
-        <div className="flex justify-end gap-2">
-          <Button size="small" onClick={() => openViewModal(r)}>
-            Xem
-          </Button>
-          <Button size="small" type="primary" onClick={() => openReviewDrawer(r)}>
-            Duyệt
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
-  // ===== UI chọn internship =====
-  // Nếu bạn chưa có dropdown internship, tạm thời nhập tay:
-  if (!internshipId) {
-    return (
-      <div className="p-6">
-        <Card className="shadow-sm border border-slate-100" styles={{ body: { padding: 16 } }}>
-          <div className="text-xl font-semibold text-slate-900">Đánh giá báo cáo</div>
-          <div className="text-slate-500 mt-1">
-            Chưa chọn internship_id. (Bạn set từ page “Sinh viên phụ trách” hoặc query param).
-          </div>
-
-          <div className="mt-4 flex gap-2">
-            <Button onClick={() => setInternshipId(1)}>Dùng internship_id=1 (demo)</Button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6">
-      <Card className="shadow-sm border border-slate-100" styles={{ body: { padding: 12 } }}>
-        <div className="flex items-center justify-between gap-3 mb-3">
+      <Card
+        className="shadow-sm border border-slate-100"
+        styles={{ body: { padding: 12 } }}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div>
-            <div className="text-xl font-semibold text-slate-900">Đánh giá báo cáo</div>
+            <div className="text-xl font-semibold text-slate-900">
+              Đánh giá báo cáo
+            </div>
             <div className="text-sm text-slate-500">
-              Duyệt đề cương / báo cáo / final, chấm điểm và phản hồi.
+              Chọn internship thật (sinh viên phụ trách) để xem & duyệt.
             </div>
           </div>
-          <Button onClick={() => loadReports(internshipId, page, limit)} loading={loading}>
-            Reload
-          </Button>
+
+          <InternshipPicker
+            loading={loadingInternships}
+            items={internships}
+            value={internshipId}
+            onReload={loadInternships}
+            onChange={(v) => {
+              setInternshipId(v);
+              setPage(1);
+              if (v != null) loadReports(v, 1, limit); // ✅ load ngay internship đã chọn
+            }}
+          />
         </div>
 
         <LecturerReportFiltersBar
@@ -319,8 +318,6 @@ export default function LecturerProgressReportsPage() {
           setDateRange={setDateRange}
           status={status}
           setStatus={setStatus}
-          pass={pass}
-          setPass={setPass}
           hasFile={hasFile}
           setHasFile={setHasFile}
           sort={sort}
@@ -330,7 +327,7 @@ export default function LecturerProgressReportsPage() {
           total={total}
         />
 
-        {!loading && items.length === 0 ? (
+        {!loading && filteredItems.length === 0 ? (
           <Empty description="Chưa có báo cáo nào." />
         ) : (
           <>
@@ -350,20 +347,32 @@ export default function LecturerProgressReportsPage() {
                 total={total}
                 showSizeChanger
                 pageSizeOptions={[5, 10, 20, 50]}
-                onChange={(p, ps) => loadReports(internshipId, p, ps)}
+                onChange={(p, ps) =>
+                  internshipId && loadReports(internshipId, p, ps)
+                }
               />
             </div>
           </>
         )}
       </Card>
 
-      <LecturerReportViewModal open={openView} item={viewItem} onClose={() => setOpenView(false)} />
+      <LecturerReportViewModal
+        open={openView}
+        item={viewItem}
+        onClose={() => {
+          setOpenView(false);
+          setViewItem(null);
+        }}
+      />
 
       <LecturerReportReviewDrawer
         open={openReview}
-        onClose={closeReviewDrawer}
+        report={reviewItem}
         loading={actionLoading}
-        initial={reviewItem}
+        onClose={() => {
+          setOpenReview(false);
+          setReviewItem(null);
+        }}
         onSubmit={handleReviewSubmit}
       />
     </div>
