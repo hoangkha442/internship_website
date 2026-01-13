@@ -168,18 +168,18 @@
 
 //           await deleteStudentReport(r.id);
 
-//           // ✅ optimistic update: rerender ngay
+//           //  optimistic update: rerender ngay
 //           setItems((prev) => prev.filter((x) => String(x.id) !== String(r.id)));
 //           setTotal((prev) => Math.max(prev - 1, 0));
 
-//           // ✅ nếu xoá item cuối trang -> lùi 1 trang
+//           //  nếu xoá item cuối trang -> lùi 1 trang
 //           const willBeEmptyPage = items.length === 1 && page > 1;
 //           const nextPage = willBeEmptyPage ? page - 1 : page;
 //           setPage(nextPage);
 
 //           message.success("Đã xoá báo cáo");
 
-//           // ✅ sync lại từ server
+//           //  sync lại từ server
 //           await loadReports(internshipId, nextPage, limit);
 //         } catch (err: any) {
 //           message.error(err?.response?.data?.message || "Không thể xoá");
@@ -196,7 +196,7 @@
 //     return <Tag color="gold">Đã nộp</Tag>;
 //   };
 
-//   // ✅ BỎ useMemo để tránh stale closure
+//   //  BỎ useMemo để tránh stale closure
 //   const columns: ColumnsType<ProgressReport> = [
 //     {
 //       title: "Report",
@@ -624,13 +624,13 @@ export default function StudentProgressReportsPage() {
 
           await deleteStudentReport(r.id);
 
-          // ✅ optimistic
+          //  optimistic
           setItems((prev) => prev.filter((x) => String(x.id) !== String(r.id)));
           setTotal((prev) => Math.max(prev - 1, 0));
 
           message.success("Đã xoá báo cáo");
 
-          // ✅ nếu xoá item cuối trang => lùi 1 trang
+          //  nếu xoá item cuối trang => lùi 1 trang
           const currentLen = itemsRef.current.length;
           const currentPage = pageRef.current;
           const currentLimit = limitRef.current;
@@ -640,7 +640,7 @@ export default function StudentProgressReportsPage() {
 
           setPage(nextPage);
 
-          // ✅ sync lại
+          //  sync lại
           await loadReports(internId, nextPage, currentLimit);
         } catch (err: any) {
           message.error(err?.response?.data?.message || "Không thể xoá");

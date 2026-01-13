@@ -1,4 +1,4 @@
-import { DatePicker, Select, Segmented, Space, Typography } from "antd";
+import { DatePicker, Select, Segmented } from "antd";
 import type { Dayjs } from "dayjs";
 import { useMemo } from "react";
 import type { DashboardRange } from "../../../../../services/lecturerDashboardApi";
@@ -35,7 +35,7 @@ export default function LecturerDashboardFiltersBar(props: {
       return { value: String(id), label };
     });
 
-    // ✅ thêm "Tất cả"
+    //  thêm "Tất cả"
     return [{ value: "all", label: "Tất cả internship" }, ...opts];
   }, [props.internships]);
 
@@ -74,17 +74,6 @@ export default function LecturerDashboardFiltersBar(props: {
             onChange={(v) => props.setDateRange(v as any)}
             allowEmpty={[true, true]}
           />
-        </div>
-
-        <div className="ml-auto">
-          <Space direction="vertical" size={0}>
-            <Typography.Text type="secondary" className="text-xs">
-              Chọn ngày sẽ ưu tiên hơn “range nhanh”.
-            </Typography.Text>
-            <Typography.Text type="secondary" className="text-xs">
-              “Tất cả internship” = tổng hợp toàn bộ sinh viên bạn phụ trách.
-            </Typography.Text>
-          </Space>
         </div>
       </div>
     </div>

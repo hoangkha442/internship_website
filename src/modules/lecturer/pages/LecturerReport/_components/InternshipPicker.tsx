@@ -21,7 +21,7 @@ export default function InternshipPicker(props: {
     const searchText = `${x.internship_id} ${x.student_code ?? ""} ${x.student_name ?? ""} ${x.topic_title ?? ""} ${x.term_name ?? ""}`;
 
     return {
-      value: x.internship_id, // ✅ giờ chắc chắn có
+      value: x.internship_id, //  giờ chắc chắn có
       searchText,
       label: (
         <div className="flex flex-col">

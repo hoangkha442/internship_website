@@ -55,7 +55,7 @@ const AppSidebar = () => {
     )
   }
 
-  // ✅ resolve avatar url from backend
+  //  resolve avatar url from backend
   const apiBase = import.meta.env.VITE_API_BASE_URL as string
   const avatarUrl = (() => {
     const u = (user as any)?.avatar_url as string | null | undefined

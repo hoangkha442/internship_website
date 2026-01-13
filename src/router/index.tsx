@@ -2,7 +2,6 @@ import { useRoutes, Navigate } from 'react-router-dom'
 import AuthLayout from '../layouts/AuthLayout'
 import DashboardLayout from '../layouts/DashboardLayout'
 import LoginPage from '../modules/auth/pages/LoginPage'
-import StudentDashboard from '../modules/student/pages/StudentDashboard'
 import LecturerDashboard from '../modules/lecturer/pages/LecturerDashboard/LecturerDashboard'
 import AdminDashboard from '../modules/admin/pages/AdminDashboard'
 import ProtectedRoute from './ProtectedRoute'
@@ -22,6 +21,7 @@ import AttendancePage from '../modules/student/pages/AttendancePage'
 import AttendanceLecturerPage from '../modules/lecturer/pages/AttendanceLecturerPage'
 import StudentProgressReportsPage from '../modules/student/pages/ProgressReports'
 import LecturerReportsReviewPage from '../modules/lecturer/pages/LecturerReport'
+import StudentDashboardPage from '../modules/student/pages/StudentDashboard'
 // import LecturerApprovalsPage from '../modules/lecturer/pages/approvals'
 
 const AppRouter = () => {
@@ -45,7 +45,7 @@ const AppRouter = () => {
         {
           path: 'student',
           children: [
-            { index: true, element: <StudentDashboard /> },
+            { index: true, element: <StudentDashboardPage /> },
             { path: '/student/profile', element: <StudentInternshipProfilePage />},
             { path: '/student/topic', element: <StudentInternshipTopics />},
             { path: '/student/worklogs', element: <StudentWorklogsPage /> },

@@ -130,7 +130,7 @@ export default function LecturerProgressReportsPage() {
           sort,
         };
 
-        // ✅ signature đúng: (internshipId, params)
+        //  signature đúng: (internshipId, params)
         const res = await getLecturerReports(internId, params);
 
         setItems(res.items ?? []);
@@ -158,7 +158,7 @@ export default function LecturerProgressReportsPage() {
   }, [internshipId, limit, loadReports]);
 
   const filteredItems = useMemo(() => {
-    // ✅ Nếu backend đã filter thì có thể return items luôn.
+    //  Nếu backend đã filter thì có thể return items luôn.
     // Mình vẫn giữ fallback lọc nhẹ để an toàn.
     let arr = [...items];
 
@@ -306,7 +306,7 @@ export default function LecturerProgressReportsPage() {
             onChange={(v) => {
               setInternshipId(v);
               setPage(1);
-              if (v != null) loadReports(v, 1, limit); // ✅ load ngay internship đã chọn
+              if (v != null) loadReports(v, 1, limit); //  load ngay internship đã chọn
             }}
           />
         </div>

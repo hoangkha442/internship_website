@@ -211,7 +211,7 @@ export default function AttendancePage() {
 
       setLeaveSubmitting(true);
 
-      // ✅ mặc định có phép (excused) + lý do bắt buộc
+      //  mặc định có phép (excused) + lý do bắt buộc
       await attendanceApi.requestLeave({
         date,
         status: "excused",

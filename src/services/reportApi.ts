@@ -156,7 +156,7 @@ export const updateStudentReport = async (
   if (payload.title != null) fd.append("title", payload.title);
   if (payload.content != null) fd.append("content", payload.content);
 
-  // ✅ CHỈ ĐỤNG TỚI ATTACHMENTS KHI THỰC SỰ CÓ FILE MỚI
+  //  CHỈ ĐỤNG TỚI ATTACHMENTS KHI THỰC SỰ CÓ FILE MỚI
   const hasNewFiles = Array.isArray(files) && files.length > 0;
 
   if (hasNewFiles) {

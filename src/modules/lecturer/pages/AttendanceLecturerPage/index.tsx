@@ -79,7 +79,7 @@ export default function AttendanceLecturerPage() {
 
       const raw = res.data ?? [];
 
-      // ✅ Không muốn xin off pending “lẫn” qua tab điểm danh
+      //  Không muốn xin off pending “lẫn” qua tab điểm danh
       const filtered = raw.filter((r: any) => !isPendingLeave(r));
 
       setListItems(filtered);
@@ -119,7 +119,7 @@ export default function AttendanceLecturerPage() {
 
       const raw = res.data ?? [];
 
-      // ✅ Pending tab chỉ hiển thị xin nghỉ pending thật sự
+      //  Pending tab chỉ hiển thị xin nghỉ pending thật sự
       const filtered = raw.filter((r: any) => isPendingLeave(r));
 
       setPendingItems(filtered);
@@ -171,7 +171,7 @@ export default function AttendanceLecturerPage() {
           await attendanceLecturerApi.approve(String(row.id), { note: note.trim() || undefined });
           message.success("Duyệt thành công");
 
-          // ✅ reload đúng page hiện tại của từng tab (không reset 1)
+          //  reload đúng page hiện tại của từng tab (không reset 1)
           await Promise.all([
             loadPending(pendingPage, pendingLimit),
             loadList(listPage, listLimit),
@@ -224,7 +224,7 @@ export default function AttendanceLecturerPage() {
 
           message.success("Đã từ chối");
 
-          // ✅ reload đúng page hiện tại
+          //  reload đúng page hiện tại
           await Promise.all([
             loadPending(pendingPage, pendingLimit),
             loadList(listPage, listLimit),
