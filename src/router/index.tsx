@@ -20,6 +20,8 @@ import AdminTermTopicsPage from '../modules/admin/pages/AdminTopicsPage'
 import AccountPage from '../modules/shared/components/AccountPage'
 import AttendancePage from '../modules/student/pages/AttendancePage'
 import AttendanceLecturerPage from '../modules/lecturer/pages/AttendanceLecturerPage'
+import StudentProgressReportsPage from '../modules/student/pages/ProgressReports'
+import LecturerReportsReviewPage from '../modules/lecturer/pages/LecturerReport'
 // import LecturerApprovalsPage from '../modules/lecturer/pages/approvals'
 
 const AppRouter = () => {
@@ -47,6 +49,7 @@ const AppRouter = () => {
             { path: '/student/profile', element: <StudentInternshipProfilePage />},
             { path: '/student/topic', element: <StudentInternshipTopics />},
             { path: '/student/worklogs', element: <StudentWorklogsPage /> },
+            { path: 'reports', element: <StudentProgressReportsPage /> },
             { path: '/student/account', element: <AccountPage /> },
             { path: '/student/attendance', element: <AttendancePage /> },
           ],
@@ -57,6 +60,7 @@ const AppRouter = () => {
             { index: true, element: <LecturerDashboard /> },
             { path: '/lecturer/topics', element: <LecturerTopicsPage />},
             { path: '/lecturer/approvals', element: <LecturerSupervisedStudentsPage />},
+            { path: "/lecturer/reports", element: <LecturerReportsReviewPage /> },
             { path: '/lecturer/worklogs', element: <LecturerWorklogReviewPage /> },
             { path: '/lecturer/account', element: <AccountPage /> },
             { path: '/lecturer/attendance', element: <AttendanceLecturerPage /> },

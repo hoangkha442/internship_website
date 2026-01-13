@@ -35,10 +35,17 @@ const statusTag = (st?: string | null) => {
   return <Tag color={x.color}>{x.label}</Tag>;
 };
 
+// ===== helper: xin nghỉ =====
+const isLeave = (r: any) => r?.status === "absent" || r?.status === "excused";
+const isPendingLeave = (r: any) => isLeave(r) && !r?.approved_at && !r?.rejection_reason;
+const canAct = (r: any) => !r?.approved_at && !r?.rejection_reason;
+
 export default function AttendanceLecturerPage() {
   const { message } = App.useApp();
 
-  // ===== LIST TAB =====
+  // =========================
+  // TAB 1: LIST (attendance list)
+  // =========================
   const [loadingList, setLoadingList] = useState(false);
   const [listItems, setListItems] = useState<any[]>([]);
   const [listPage, setListPage] = useState(1);
@@ -52,7 +59,7 @@ export default function AttendanceLecturerPage() {
     null,
   ]);
 
-  // loading action approve/reject
+  // action loading approve/reject (show loading on buttons)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   const loadList = async (p = listPage, l = listLimit) => {
@@ -68,9 +75,14 @@ export default function AttendanceLecturerPage() {
       }
 
       const res = await attendanceLecturerApi.list(params);
+      // BE: { total,page,limit,totalPages,data }
 
-      // ✅ BE trả { total,page,limit,totalPages,data }
-      setListItems(res.data ?? []);
+      const raw = res.data ?? [];
+
+      // ✅ Không muốn xin off pending “lẫn” qua tab điểm danh
+      const filtered = raw.filter((r: any) => !isPendingLeave(r));
+
+      setListItems(filtered);
       setListTotal(res.total ?? 0);
       setListPage(res.page ?? p);
       setListLimit(res.limit ?? l);
@@ -83,17 +95,18 @@ export default function AttendanceLecturerPage() {
     }
   };
 
-  // ===== PENDING TAB =====
+  // =========================
+  // TAB 2: PENDING (leave requests)
+  // =========================
   const [loadingPending, setLoadingPending] = useState(false);
   const [pendingItems, setPendingItems] = useState<any[]>([]);
   const [pendingPage, setPendingPage] = useState(1);
   const [pendingLimit, setPendingLimit] = useState(10);
   const [pendingTotal, setPendingTotal] = useState(0);
 
-  const [pendingRange, setPendingRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([
-    null,
-    null,
-  ]);
+  const [pendingRange, setPendingRange] = useState<
+    [dayjs.Dayjs | null, dayjs.Dayjs | null]
+  >([null, null]);
 
   const loadPending = async (p = pendingPage, l = pendingLimit) => {
     setLoadingPending(true);
@@ -102,9 +115,14 @@ export default function AttendanceLecturerPage() {
       const to = pendingRange[1] ? pendingRange[1]!.format("YYYY-MM-DD") : undefined;
 
       const res = await attendanceLecturerApi.pending({ page: p, limit: l, from, to });
+      // BE: { total,page,limit,totalPages,data }
 
-      // ✅ BE trả { total,page,limit,totalPages,data }
-      setPendingItems(res.data ?? []);
+      const raw = res.data ?? [];
+
+      // ✅ Pending tab chỉ hiển thị xin nghỉ pending thật sự
+      const filtered = raw.filter((r: any) => isPendingLeave(r));
+
+      setPendingItems(filtered);
       setPendingTotal(res.total ?? 0);
       setPendingPage(res.page ?? p);
       setPendingLimit(res.limit ?? l);
@@ -123,6 +141,9 @@ export default function AttendanceLecturerPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // =========================
+  // Actions: Approve / Reject
+  // =========================
   const openApprove = (row: any) => {
     let note = "";
 
@@ -149,7 +170,12 @@ export default function AttendanceLecturerPage() {
           setActionLoadingId(String(row.id));
           await attendanceLecturerApi.approve(String(row.id), { note: note.trim() || undefined });
           message.success("Duyệt thành công");
-          await Promise.all([loadPending(1, pendingLimit), loadList(1, listLimit)]);
+
+          // ✅ reload đúng page hiện tại của từng tab (không reset 1)
+          await Promise.all([
+            loadPending(pendingPage, pendingLimit),
+            loadList(listPage, listLimit),
+          ]);
         } catch (e: any) {
           message.error(e?.response?.data?.message || "Duyệt thất bại");
         } finally {
@@ -190,14 +216,21 @@ export default function AttendanceLecturerPage() {
         try {
           const values = await f.validateFields();
           setActionLoadingId(String(row.id));
+
           await attendanceLecturerApi.reject(String(row.id), {
             rejection_reason: String(values.rejection_reason || "").trim(),
             note: String(values.note || "").trim() || undefined,
           });
+
           message.success("Đã từ chối");
-          await Promise.all([loadPending(1, pendingLimit), loadList(1, listLimit)]);
+
+          // ✅ reload đúng page hiện tại
+          await Promise.all([
+            loadPending(pendingPage, pendingLimit),
+            loadList(listPage, listLimit),
+          ]);
         } catch (e: any) {
-          // validateFields ném lỗi -> không cần toast
+          // validateFields throw -> ignore
           if (e?.errorFields) return;
           message.error(e?.response?.data?.message || "Từ chối thất bại");
         } finally {
@@ -207,8 +240,9 @@ export default function AttendanceLecturerPage() {
     });
   };
 
-  const canAct = (r: any) => !r.approved_at && !r.rejection_reason;
-
+  // =========================
+  // Columns
+  // =========================
   const listColumns: ColumnsType<any> = useMemo(
     () => [
       {
@@ -245,6 +279,7 @@ export default function AttendanceLecturerPage() {
       {
         title: "Duyệt",
         render: (_, r) => {
+          if (!isLeave(r)) return <Tag>—</Tag>;
           if (r.approved_at) return <Tag color="green">Đã duyệt</Tag>;
           if (r.rejection_reason) return <Tag color="red">Bị từ chối</Tag>;
           return <Tag color="gold">Chờ duyệt</Tag>;
@@ -254,6 +289,8 @@ export default function AttendanceLecturerPage() {
       {
         title: "Hành động",
         render: (_, r) => {
+          // list tab: bạn có thể muốn cho duyệt luôn từ list (nếu muốn)
+          // nhưng vì list tab đã lọc bỏ pending xin nghỉ -> đa số sẽ là đã duyệt / đã từ chối
           if (!canAct(r)) return "—";
           return (
             <Space>
@@ -334,7 +371,9 @@ export default function AttendanceLecturerPage() {
   return (
     <div className="p-6">
       <Card className="shadow-sm border border-slate-100" styles={{ body: { padding: 14 } }}>
-        <div className="text-lg font-semibold text-slate-900">Giảng viên • Quản lý điểm danh</div>
+        <div className="text-lg font-semibold text-slate-900">
+          Giảng viên • Quản lý điểm danh
+        </div>
 
         <Tabs
           className="mt-3"
@@ -346,15 +385,26 @@ export default function AttendanceLecturerPage() {
                 <>
                   <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                     <Space wrap>
-                      <Button type={mode === "range" ? "primary" : "default"} onClick={() => setMode("range")}>
+                      <Button
+                        type={mode === "range" ? "primary" : "default"}
+                        onClick={() => setMode("range")}
+                      >
                         Theo khoảng
                       </Button>
-                      <Button type={mode === "date" ? "primary" : "default"} onClick={() => setMode("date")}>
+                      <Button
+                        type={mode === "date" ? "primary" : "default"}
+                        onClick={() => setMode("date")}
+                      >
                         Theo 1 ngày
                       </Button>
 
                       {mode === "date" ? (
-                        <DatePicker value={oneDate} onChange={(v) => setOneDate(v)} format="DD/MM/YYYY" allowClear />
+                        <DatePicker
+                          value={oneDate}
+                          onChange={(v) => setOneDate(v)}
+                          format="DD/MM/YYYY"
+                          allowClear
+                        />
                       ) : (
                         <RangePicker
                           value={range}

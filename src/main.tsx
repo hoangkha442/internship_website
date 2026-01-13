@@ -8,7 +8,10 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store/index.ts";
 import { NotificationProvider } from "./provider/Notification.tsx";
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
 
+dayjs.extend(isBetween);
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ConfigProvider theme={{ token: { borderRadius: 6 } }}>

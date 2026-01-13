@@ -54,6 +54,7 @@ export const sidebarConfig: Record<SidebarRole, SidebarConfig> = {
       { key: 'stu-profile', label: 'Hồ sơ thực tập', icon: 'badge', path: '/student/profile' },
       { key: 'stu-topic', label: 'Đề tài thực tập', icon: 'menu_book', path: '/student/topic' },
       { key: 'stu-worklogs', label: 'Nhật ký tiến độ', icon: 'assignment', path: '/student/worklogs' },
+       { key: 'stu-reports', label: 'Báo cáo tiến độ', icon: 'assessment', path: '/student/reports' },
       { key: 'stu-attendance', label: 'Điểm danh', icon: 'calendar_month', path: '/student/attendance' },
     ],
     bottom: [

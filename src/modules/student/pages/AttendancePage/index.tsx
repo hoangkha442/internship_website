@@ -333,9 +333,7 @@ export default function AttendancePage() {
 
         {isDev ? (
           <div className="mt-4 p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50">
-            <div className="text-xs text-slate-500 mb-2">
-              DEV: giả lập “WiFi trường” bằng header <b>x-dev-ip</b> (backend sẽ đọc nếu NODE_ENV != production)
-            </div>
+
             <Space wrap>
               <Input
                 value={devIp}
